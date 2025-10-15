@@ -32,9 +32,10 @@ jobs:
       max-parallel: 5
       matrix:
         include:
-          - account: miri-rodriguezg
-            email: 33882180+miri-rodriguezg@users.noreply.github.com
-            token_secret: PATnew
+         - account: SafarovNatiq
+           email: 97017190+SafarovNatiq@users.noreply.github.com
+           token_secret: PAT1
+
 
     steps:
       - name: Checkout
