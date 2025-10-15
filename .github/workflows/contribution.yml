@@ -34,7 +34,7 @@ jobs:
         include:
           - account: miri-rodriguez
             email: 33882180+miri-rodriguezg@users.noreply.github.com
-            token_secret: PAT2
+            token_secret: PATnew
 
     steps:
       - name: Checkout
