@@ -32,54 +32,9 @@ jobs:
       max-parallel: 5
       matrix:
         include:
-          - account: SafarovNatiq
-            email: 97017190+SafarovNatiq@users.noreply.github.com
-            token_secret: PAT1
           - account: miri-rodriguez
             email: 33882180+miri-rodriguezg@users.noreply.github.com
             token_secret: PAT2
-          - account: davi709
-            email: 67561050+davi709@users.noreply.github.com
-            token_secret: PAT3
-          - account: fahDkeerapak
-            email: 125784790+fahDkeerapak@users.noreply.github.com
-            token_secret: PAT4
-          - account: zhanglei0031
-            email: 91275664+zhanglei0031@users.noreply.github.com
-            token_secret: PAT5
-          - account: Veluste
-            email: 10331502+Veluste@users.noreply.github.com
-            token_secret: PAT6
-          - account: sjj370817
-            email: 91030827+sjj370817@users.noreply.github.com
-            token_secret: PAT7
-          - account: titotito12
-            email: 17217284+titotito12@users.noreply.github.com
-            token_secret: PAT8
-          - account: luischalo74
-            email: 143030870+luischalo74@users.noreply.github.com
-            token_secret: PAT9
-          - account: selmanuslu
-            email: 63121832+selmanuslu@users.noreply.github.com
-            token_secret: PAT10
-          - account: greativann
-            email: 139834460+greativann@users.noreply.github.com
-            token_secret: pat11
-          - account: vegeta888
-            email: 19150937+vegeta888@users.noreply.github.com
-            token_secret: PAT12
-          - account: Samikhanzada
-            email: 141436265+Samikhanzada@users.noreply.github.com
-            token_secret: PAT13
-          - account: sebastianohjne
-            email: 680127+sebastianohjne@users.noreply.github.com
-            token_secret: PAT14
-          - account: Fel65
-            email: 93129277+Fel65@users.noreply.github.com
-            token_secret: PAT15
-          - account: RockawayGio
-            email: 138243063+RockawayGio@users.noreply.github.com
-            token_secret: PAT16
 
     steps:
       - name: Checkout
