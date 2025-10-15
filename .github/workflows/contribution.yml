@@ -32,7 +32,7 @@ jobs:
       max-parallel: 5
       matrix:
         include:
-          - account: miri-rodriguez
+          - account: miri-rodriguezg
             email: 33882180+miri-rodriguezg@users.noreply.github.com
             token_secret: PATnew
 
