@@ -1,0 +1,387 @@
+name: Unified Multi-Account Workflow (Real Fix)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_prefix:
+        description: 'Prefix nama repository (contoh: rixz)'
+        default: 'rixz'
+      repo_count:
+        description: 'Jumlah repository per akun'
+        default: 1
+      total_commits:
+        default: 1650
+      total_days:
+        default: 365
+      total_prs:
+        default: 1
+      total_issues:
+        default: 1
+      target_repo:
+        default: "safarovnatiq/hapus"
+
+jobs:
+  unified:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        include:
+          - account: SafarovNatiq
+            email: 97017190+SafarovNatiq@users.noreply.github.com
+            token_secret: PAT1
+          - account: miri-rodriguezg
+            email: 33882180+miri-rodriguezg@users.noreply.github.com
+            token_secret: PATnew
+          - account: davi709
+            email: 67561050+davi709@users.noreply.github.com
+            token_secret: PAT3
+          - account: fahDkeerapak
+            email: 125784790+fahDkeerapak@users.noreply.github.com
+            token_secret: PAT4
+          - account: zhanglei0031
+            email: 91275664+zhanglei0031@users.noreply.github.com
+            token_secret: PAT5
+          - account: Veluste
+            email: 10331502+Veluste@users.noreply.github.com
+            token_secret: PAT6
+          - account: sjj370817
+            email: 91030827+sjj370817@users.noreply.github.com
+            token_secret: PAT7
+          - account: titotito12
+            email: 17217284+titotito12@users.noreply.github.com
+            token_secret: PAT8
+          - account: luischalo74
+            email: 143030870+luischalo74@users.noreply.github.com
+            token_secret: PAT9
+          - account: selmanuslu
+            email: 63121832+selmanuslu@users.noreply.github.com
+            token_secret: PAT10
+          - account: greativann
+            email: 139834460+greativann@users.noreply.github.com
+            token_secret: pat11
+          - account: vegeta888
+            email: 19150937+vegeta888@users.noreply.github.com
+            token_secret: PAT12
+          - account: Samikhanzada
+            email: 141436265+Samikhanzada@users.noreply.github.com
+            token_secret: PAT13
+          - account: Fel65
+            email: 93129277+Fel65@users.noreply.github.com
+            token_secret: PAT15
+          - account: RockawayGio
+            email: 138243063+RockawayGio@users.noreply.github.com
+            token_secret: PAT16
+
+    steps:
+      # STEP 1: Clone TARGET REPO dulu (seperti script single)
+      - name: Clone target repository
+        env:
+          GH_TOKEN: ${{ secrets[matrix.token_secret] }}
+          TARGET_REPO: ${{ github.event.inputs.target_repo }}
+        run: |
+          echo "=========================================="
+          echo "🔧 STEP 1: Clone Target Repository"
+          echo "=========================================="
+          echo "Account: ${{ matrix.account }}"
+          echo "Email: ${{ matrix.email }}"
+          echo "Target Repo: $TARGET_REPO"
+          echo ""
+          
+          git clone https://x-access-token:${GH_TOKEN}@github.com/$TARGET_REPO repo
+          cd repo
+          
+          echo "📝 Setting Git Config..."
+          git config user.name "${{ matrix.account }}"
+          git config user.email "${{ matrix.email }}"
+          
+          echo ""
+          echo "✅ Git Config Applied:"
+          echo "   Name: $(git config user.name)"
+          echo "   Email: $(git config user.email)"
+          echo ""
+          echo "📊 Current Repository Status:"
+          git log --oneline -5 || echo "   (Repository is empty or no commits yet)"
+          echo "=========================================="
+
+      # STEP 2: Delay antar akun
+      - name: Delay before account start
+        run: |
+          echo "🕒 Menunggu 10 detik sebelum memulai akun ${{ matrix.account }}..."
+          sleep 10
+
+      # STEP 3: Generate commits di TARGET REPO
+      - name: Generate commits in target repo
+        env:
+          TOTAL_COMMITS: ${{ github.event.inputs.total_commits }}
+          TOTAL_DAYS: ${{ github.event.inputs.total_days }}
+          GH_TOKEN: ${{ secrets[matrix.token_secret] }}
+          TARGET_REPO: ${{ github.event.inputs.target_repo }}
+        run: |
+          cd repo
+          
+          echo "=========================================="
+          echo "📝 STEP 3: Generate Commits"
+          echo "=========================================="
+          echo "Account: ${{ matrix.account }}"
+          echo "Total Commits: $TOTAL_COMMITS"
+          echo "Total Days: $TOTAL_DAYS"
+          echo ""
+          
+          mkdir -p logs/${{ matrix.account }}
+          
+          COMMITS_PER_DAY=$((TOTAL_COMMITS / TOTAL_DAYS))
+          START_DATE=$(date -d "$TOTAL_DAYS days ago" +%Y-%m-%d)
+          
+          echo "📊 Commit Distribution:"
+          echo "   Commits per day: $COMMITS_PER_DAY"
+          echo "   Start date: $START_DATE"
+          echo "   End date: $(date +%Y-%m-%d)"
+          echo ""
+          echo "🔄 Starting commit generation..."
+          echo ""
+
+          commit_count=0
+          for ((day=0; day<TOTAL_DAYS; day++)); do
+            DATE_STR=$(date -d "$START_DATE +$day days" +%Y-%m-%d)
+            
+            # Log progress setiap 30 hari
+            if [ $((day % 30)) -eq 0 ]; then
+              echo "   Progress: Day $day/$TOTAL_DAYS ($DATE_STR) - $commit_count commits created"
+            fi
+            
+            for ((i=1; i<=COMMITS_PER_DAY; i++)); do
+              echo "Commit $i oleh ${{ matrix.account }} pada $DATE_STR" >> logs/${{ matrix.account }}/day_$day.txt
+              git add logs/${{ matrix.account }}/day_$day.txt
+              GIT_COMMITTER_DATE="$DATE_STR 12:00:00" \
+              GIT_AUTHOR_DATE="$DATE_STR 12:00:00" \
+              git commit -m "Auto commit $i by ${{ matrix.account }}" || true
+              commit_count=$((commit_count + 1))
+            done
+          done
+          
+          echo ""
+          echo "✅ Commit generation completed!"
+          echo "   Total commits created: $commit_count"
+          echo ""
+          echo "📊 Repository Status Before Push:"
+          echo "   Total commits in repo: $(git rev-list --count HEAD)"
+          echo "   Last 5 commits:"
+          git log --oneline -5 --pretty=format:"      %h - %an <%ae> - %s"
+          echo ""
+          echo ""
+          echo "🚀 Pushing to remote repository..."
+          echo ""
+
+          # Push dengan retry dan logging
+          push_success=false
+          for attempt in {1..3}; do
+            echo "   Push attempt $attempt/3..."
+            if git push https://x-access-token:${GH_TOKEN}@github.com/$TARGET_REPO HEAD:main; then
+              push_success=true
+              echo "   ✅ Push successful!"
+              break
+            else
+              echo "   ❌ Push failed, retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          
+          if [ "$push_success" = false ]; then
+            echo "   ⚠️ WARNING: All push attempts failed!"
+            exit 1
+          fi
+          
+          echo ""
+          echo "=========================================="
+          echo "✅ STEP 3 COMPLETED SUCCESSFULLY"
+          echo "=========================================="
+
+      # STEP 4: Create PRs and Issues di TARGET REPO
+      - name: Create PRs and Issues
+        env:
+          GH_TOKEN: ${{ secrets[matrix.token_secret] }}
+          TARGET_REPO: ${{ github.event.inputs.target_repo }}
+          TOTAL_PRS: ${{ github.event.inputs.total_prs }}
+          TOTAL_ISSUES: ${{ github.event.inputs.total_issues }}
+        run: |
+          cd repo
+          
+          echo "=========================================="
+          echo "🔀 STEP 4: Create PRs and Issues"
+          echo "=========================================="
+          echo "Account: ${{ matrix.account }}"
+          echo "Target PRs: $TOTAL_PRS"
+          echo "Target Issues: $TOTAL_ISSUES"
+          echo ""
+          
+          pr_success=0
+          pr_failed=0
+          
+          echo "🔀 Creating Pull Requests..."
+          for i in $(seq 1 $TOTAL_PRS); do
+            branch="auto-${{ matrix.account }}-pr-$i-$(date +%s)"
+            echo "   [$i/$TOTAL_PRS] Creating PR on branch: $branch"
+            
+            echo "Pull request #$i by ${{ matrix.account }}" > pr_${{ matrix.account }}_$i.txt
+            git checkout -B $branch
+            git add pr_${{ matrix.account }}_$i.txt
+            git commit -m "PR otomatis #$i oleh ${{ matrix.account }}" || true
+            git push -f https://x-access-token:${GH_TOKEN}@github.com/$TARGET_REPO HEAD:$branch
+            
+            if gh pr create \
+              --title "PR #$i dari ${{ matrix.account }}" \
+              --body "PR otomatis oleh ${{ matrix.account }}" \
+              --base main --head $branch \
+              --repo $TARGET_REPO 2>/dev/null; then
+              pr_success=$((pr_success + 1))
+            else
+              pr_failed=$((pr_failed + 1))
+              echo "      ⚠️ PR creation failed"
+            fi
+            sleep 2
+          done
+          
+          echo ""
+          echo "📊 PR Summary:"
+          echo "   ✅ Success: $pr_success"
+          echo "   ❌ Failed: $pr_failed"
+          echo ""
+          
+          issue_success=0
+          issue_failed=0
+          
+          echo "📋 Creating Issues..."
+          for i in $(seq 1 $TOTAL_ISSUES); do
+            echo "   [$i/$TOTAL_ISSUES] Creating issue..."
+            
+            if gh issue create \
+              --title "Issue #$i dari ${{ matrix.account }}" \
+              --body "Auto-generated issue $i oleh ${{ matrix.account }}" \
+              --repo $TARGET_REPO 2>/dev/null; then
+              issue_success=$((issue_success + 1))
+            else
+              issue_failed=$((issue_failed + 1))
+              echo "      ⚠️ Issue creation failed"
+            fi
+            sleep 1
+          done
+          
+          echo ""
+          echo "📊 Issue Summary:"
+          echo "   ✅ Success: $issue_success"
+          echo "   ❌ Failed: $issue_failed"
+          echo ""
+          echo "=========================================="
+          echo "✅ STEP 4 COMPLETED"
+          echo "=========================================="
+
+      # STEP 5: Setup untuk membuat repositories (SETELAH commit di target repo)
+      - name: Setup repository generator variables
+        run: |
+          WORDS=("quantum" "nova" "lumen" "matrix" "orbit" "vector" "sigma" "neon" "delta" "aero" "fusion" "zenith")
+          SUFFIX=("project" "service" "system" "app" "engine" "hub" "core" "cloud" "framework")
+          LANGS=("Python" "C++" "Go" "Swift" "Java" "JavaScript" "Ruby")
+          EXT=("py" "cpp" "go" "swift" "java" "js" "rb")
+          CONTENTS=(
+            "print('Hello from Python!')"
+            "#include <iostream>\nint main(){std::cout << \"Hello from C++!\"; return 0;}"
+            "package main\nimport \"fmt\"\nfunc main(){fmt.Println(\"Hello from Go!\")}"
+            "print(\"Hello from Swift!\")"
+            "public class Main { public static void main(String[] args){ System.out.println(\"Hello from Java!\"); } }"
+            "console.log('Hello from JavaScript!');"
+            "puts 'Hello from Ruby!'"
+          )
+
+          echo "WORDS=${WORDS[*]}" >> $GITHUB_ENV
+          echo "SUFFIX=${SUFFIX[*]}" >> $GITHUB_ENV
+          echo "LANGS=${LANGS[*]}" >> $GITHUB_ENV
+          echo "EXT=${EXT[*]}" >> $GITHUB_ENV
+          echo "CONTENTS=${CONTENTS[*]}" >> $GITHUB_ENV
+
+      # STEP 6: Buat repositories baru (opsional, terpisah dari target repo)
+      - name: Create additional repositories
+        env:
+          PAT_TOKEN: ${{ secrets[matrix.token_secret] }}
+        run: |
+          set -euo pipefail
+          IFS=' ' read -r -a WORDS <<< "$WORDS"
+          IFS=' ' read -r -a SUFFIX <<< "$SUFFIX"
+          IFS=' ' read -r -a LANGS <<< "$LANGS"
+          IFS=' ' read -r -a EXT <<< "$EXT"
+          IFS=' ' read -r -a CONTENTS <<< "$CONTENTS"
+
+          PREFIX=${{ github.event.inputs.repo_prefix }}
+          COUNT=${{ github.event.inputs.repo_count }}
+
+          echo "=========================================="
+          echo "📦 STEP 6: Create Additional Repositories"
+          echo "=========================================="
+          echo "Account: ${{ matrix.account }}"
+          echo "Prefix: $PREFIX"
+          echo "Count: $COUNT"
+          echo ""
+
+          git config --global user.name "${{ matrix.account }}"
+          git config --global user.email "${{ matrix.email }}"
+
+          repo_success=0
+          repo_failed=0
+
+          for i in $(seq 1 $COUNT); do
+            NAME="${PREFIX}-${WORDS[$RANDOM % ${#WORDS[@]}]}-${SUFFIX[$RANDOM % ${#SUFFIX[@]}]}"
+            LANG_INDEX=$((RANDOM % ${#LANGS[@]}))
+            LANG=${LANGS[$LANG_INDEX]}
+            FILE_EXT=${EXT[$LANG_INDEX]}
+            FILE_CONTENT=${CONTENTS[$LANG_INDEX]}
+            FILE_NAME="main.${FILE_EXT}"
+
+            echo "📦 [$i/$COUNT] Creating repo: $NAME ($LANG)"
+            
+            if curl -s -H "Authorization: token $PAT_TOKEN" \
+                 -d "{\"name\":\"$NAME\",\"auto_init\":true}" \
+                 https://api.github.com/user/repos > /dev/null; then
+              echo "   ✅ Repository created"
+            else
+              echo "   ⚠️ Repository creation failed"
+              repo_failed=$((repo_failed + 1))
+              continue
+            fi
+            sleep 2
+
+            # Bersihkan jika ada
+            [ -d "$NAME" ] && rm -rf "$NAME"
+
+            # Clone dan commit
+            if git clone https://x-access-token:${PAT_TOKEN}@github.com/${{ matrix.account }}/$NAME.git 2>/dev/null; then
+              cd $NAME
+              printf "%b\n" "$FILE_CONTENT" > $FILE_NAME
+              git add -A
+              if git commit -m "Initial commit ($LANG)" 2>/dev/null; then
+                if git push origin main --force 2>/dev/null; then
+                  echo "   ✅ Initial commit pushed"
+                  repo_success=$((repo_success + 1))
+                else
+                  echo "   ⚠️ Push failed"
+                  repo_failed=$((repo_failed + 1))
+                fi
+              else
+                echo "   ℹ️ No changes to commit"
+                repo_success=$((repo_success + 1))
+              fi
+              cd ..
+              rm -rf "$NAME"
+            else
+              echo "   ⚠️ Clone failed"
+              repo_failed=$((repo_failed + 1))
+            fi
+          done
+          
+          echo ""
+          echo "📊 Repository Creation Summary:"
+          echo "   ✅ Success: $repo_success"
+          echo "   ❌ Failed: $repo_failed"
+          echo "=========================================="
+          echo "✅ STEP 6 COMPLETED"
+          echo "=========================================="
